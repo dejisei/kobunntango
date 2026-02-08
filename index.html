@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>古文単語 官職昇進クイズ</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Sawarabi Mincho', serif; 
+            background-color: #e6dcc1; 
+            background-image: url('https://www.transparenttextures.com');
+            text-align: center; margin: 0; padding: 20px; 
+        }
+        .container { 
+            max-width: 700px; margin: auto; 
+            background: #fffaf0; 
+            padding: 30px; 
+            border: 10px double #8b4513; 
+            border-radius: 5px; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            position: relative; min-height: 520px;
+        }
+        .hidden { display: none; }
+        h1 { color: #5d4037; border-bottom: 2px solid #8b4513; display: inline-block; padding-bottom: 5px; }
+        
+        button { 
+            cursor: pointer; padding: 12px 24px; font-family: inherit; font-size: 1rem; 
+            border: 2px solid #8b4513; background: #fdf5e6; transition: 0.2s; margin: 8px;
+            box-shadow: 2px 2px 0 #8b4513;
+        }
+        button:hover { background: #8b4513; color: white; transform: translate(-2px, -2px); box-shadow: 4px 4px 0 #5d4037; }
+
+        .exit-btn { position: absolute; top: 15px; right: 15px; font-size: 0.8rem; padding: 5px 10px; opacity: 0.8; background: #fff; }
+        
+        #timer-display { font-size: 1.2rem; color: #b22222; font-weight: bold; margin-bottom: 10px; }
+        #word-display { font-size: 3.5rem; font-weight: bold; margin: 30px 0; color: #2f4f4f; text-shadow: 1px 1px 2px #ccc; height: 100px; display: flex; align-items: center; justify-content: center;}
+        #choices { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { 
+            padding: 20px; border: 1px solid #8b4513; background: #fffef0; 
+            box-shadow: 3px 3px 0 #d2b48c; cursor: pointer; min-height: 60px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+        }
+
+        .rank-title { font-size: 3rem; color: #d32f2f; margin: 20px 0; font-weight: bold; text-shadow: 1px 1px 0px #000; }
+        .time-record { font-size: 1.5rem; margin-bottom: 20px; }
+        
+        #word-list-container { max-height: 350px; overflow-y: auto; text-align: left; background: #fff; border: 1px solid #8b4513; padding: 10px; }
+        .word-item { border-bottom: 1px solid #eee; padding: 8px; display: flex; justify-content: space-between; }
+        .range-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+        
+        /* 「全て」ボタン用のスタイル */
+        .all-btn { grid-column: 1 / 3; background: #fbe9e7; font-weight: bold; border-color: #d32f2f; }
+    </style>
+</head>
+<body>
+
+<div id="game-container" class="container">
+    <div id="screen-menu">
+        <h1>古文単語 官職昇進戦</h1>
+        <p>～ 迅速に訳し、高位を目指せ ～</p>
+        <button style="width:80%" onclick="showScreen('screen-range')">演習を開始する</button><br>
+        <button style="width:80%" onclick="showList()">単語帳を捲る</button>
+    </div>
+
+    <div id="screen-list" class="hidden">
+        <h1>単語一覧</h1>
+        <div id="word-list-container"></div>
+        <button onclick="showScreen('screen-menu')">戻る</button>
+    </div>
+
+    <div id="screen-range" class="hidden">
+        <h1>出題範囲の選択</h1>
+        <div class="range-grid" id="range-buttons"></div>
+        <button onclick="showScreen('screen-menu')">戻る</button>
+    </div>
+
+    <div id="screen-quiz" class="hidden">
+        <button class="exit-btn" onclick="stopQuiz()">中断</button>
+        <div id="timer-display">経過時間: 0.0秒</div>
+        <div id="progress">残り: 0問</div>
+        <div id="word-display"></div>
+        <div id="choices">
+            <div class="card" onclick="checkAnswer(0)"></div>
+            <div class="card" onclick="checkAnswer(1)"></div>
+            <div class="card" onclick="checkAnswer(2)"></div>
+            <div class="card" onclick="checkAnswer(3)"></div>
+        </div>
+        <div id="result-message" style="height: 30px; margin-top: 15px;"></div>
+    </div>
+
+    <div id="screen-result" class="hidden">
+        <h1>結果報告</h1>
+        <div class="time-record">所要時間: <span id="final-time"></span>秒</div>
+        <div>あなたの階級は…</div>
+        <div id="rank-display" class="rank-title"></div>
+        <p id="rank-comment" style="font-size: 1.2rem;"></p>
+        <button onclick="showScreen('screen-range')">再び励む</button>
+        <button onclick="showScreen('screen-menu')">品書きへ戻る</button>
+    </div>
+</div>
+
+<script>
+        const allWords = [
+        {word: "あいなし", meaning: "つまらない"}, {word: "あかず", meaning: "もの足らない"}, {word: "あからさまなり", meaning: "ついちょっと"}, {word: "あさまし", meaning: "驚きあきれる"}, {word: "あそび", meaning: "詩歌管弦"}, {word: "あだなり", meaning: "むだな様子"}, {word: "あたらし", meaning: "もったいない"}, {word: "あぢきなし", meaning: "どうしようもない"}, {word: "あてなり", meaning: "身分が高い"}, {word: "あながちなり", meaning: "無闇だ"}, {word: "あはれなり", meaning: "しみじみする"}, {word: "あふ", meaning: "結婚する"}, {word: "あまた", meaning: "たくさん"}, {word: "あやし", meaning: "不思議だ"}, {word: "ありがたし", meaning: "珍しい"}, {word: "ありく", meaning: "歩き回る"}, {word: "いうなり", meaning: "上品だ"}, {word: "いかがせん", meaning: "どうしようか"}, {word: "いかかで", meaning: "どうして？"}, {word: "いかめし", meaning: "盛大だ"}, {word: "いさ", meaning: "さあ、どうかな"}, {word: "いそぎ", meaning: "準備"}, {word: "いたづらなり", meaning: "むなしい"}, {word: "いとど", meaning: "いっそう"}, {word: "いとほし", meaning: "気の毒だ"}, {word: "いぶかし", meaning: "気がかりだ"}, {word: "いぶせし", meaning: "憂鬱だ"}, {word: "いますがり", meaning: "いらっしゃる"}, {word: "いみじ", meaning: "程度がはなはだしい"}, {word: "いらふ", meaning: "答える"}, {word: "うしろめたし", meaning: "心配だ"}, {word: "うたて", meaning: "ますます"}, {word: "うちつけなり", meaning: "突然だ"}, {word: "うつくし", meaning: "かわいい"}, {word: "うつつ", meaning: "現実"}, {word: "うるはし", meaning: "立派だ"}, {word: "え〜ず", meaning: "〜できない"}, {word: "おくる", meaning: "取り残される"}, {word: "おこたる", meaning: "病気が治る"}, {word: "おこなふ", meaning: "修行する"}, {word: "おどろく", meaning: "目を覚ます"}, {word: "おぼつかなし", meaning: "気がかりだ"}, {word: "おほやけ", meaning: "朝廷"}, {word: "おぼろげ", meaning: "普通だ"}, {word: "おもてぎ", meaning: "不名誉"}, {word: "おろす", meaning: "出家する"}, {word: "かこつ", meaning: "他のせいにする"}, {word: "かしこし", meaning: "恐れ多い"}, {word: "かしづく", meaning: "大切に育てる"}, {word: "かたはらいたし", meaning: "気恥ずかしい"}, {word: "かなし", meaning: "かわいい"}, {word: "からし", meaning: "つらい"}, {word: "きこゆ", meaning: "申し上げる"}, {word: "ぐす", meaning: "連れていく"}, {word: "けしからず", meaning: "不都合だ"}, {word: "けしき", meaning: "様子"}, {word: "げに", meaning: "なるほど"}, {word: "ここら", meaning: "たくさん"}, {word: "こころあり", meaning: "おもいやりがある"}, {word: "こころぐるし", meaning: "気の毒だ"}, {word: "こころざし", meaning: "愛情"}, {word: "こころづきなし", meaning: "気に食わない"}, {word: "こころづくし", meaning: "物思う"}, {word: "こころにくし", meaning: "奧ゆかしい"}, {word: "こころもとなし", meaning: "不安だ"}, {word: "ことわり", meaning: "ものの道理"}, {word: "こまやか", meaning: "詳しい"}, {word: "さうざうし", meaning: "寂しい"}, {word: "さうなし", meaning: "簡単だ"}, {word: "ざえ", meaning: "才能"}, {word: "さかし", meaning: "こざかしい"}, {word: "さすがに", meaning: "そうは言ってもやり"}, {word: "さながら", meaning: "もとのまま"}, {word: "さはれ", meaning: "どうにでもなれ"}, {word: "したたむ", meaning: "準備をする"}, {word: "しどけなし", meaning: "だらしがない"}, {word: "しる", meaning: "治める"}, {word: "しるし", meaning: "はっきりしている"}, {word: "すさび", meaning: "気まぐれ"}, {word: "すさまじ", meaning: "興覚めだ"}, {word: "すずろ", meaning: "なんとなく"}, {word: "ずちなし", meaning: "どうしようもない"}, {word: "すなはち", meaning: "すぐに"}, {word: "せうそこ", meaning: "手紙"}, {word: "そこばく", meaning: "たくさん"}, {word: "そぞろ", meaning: "むやみに"}, {word: "だに", meaning: "さえ"}, {word: "たのむ", meaning: "あてにする"}, {word: "たより", meaning: "べんり"}, {word: "ついで", meaning: "機会"}, {word: "つきづきし", meaning: "似合っている"}, {word: "つれなし", meaning: "よそよそしい"}, {word: "てしがな", meaning: "～たいものだ"}, {word: "ときめく", meaning: "寵愛される"}, {word: "とく", meaning: "はやく"}, {word: "ところせし", meaning: "窮屈だ"}, {word: "とし", meaning: "はやい"}, {word: "としごろ", meaning: "長年"}, {word: "とみなり", meaning: "急だ"}, {word: "とむ", meaning: "求める"}, {word: "な～そ", meaning: "～するな"}, {word: "ながむ", meaning: "ぼんやりとみる"}, {word: "なつかし", meaning: "心ひかれる"}, {word: "なのめ", meaning: "平凡だ"}, {word: "なべて", meaning: "すべて"}, {word: "なほ", meaning: "やはり"}, {word: "なむ", meaning: "してほしい"}, {word: "ねんごろ", meaning: "ていねい"}, {word: "ねんず", meaning: "心の中で祈る"}, {word: "ののしる", meaning: "大声で騒ぐ"}, {word: "はかなし", meaning: "むなしい"}, {word: "はかばかし", meaning: "てきばきしている"}, {word: "はつか", meaning: "ちょっと"}, {word: "はづかし", meaning: "立派だ"}, {word: "ばや", meaning: "～たい"}, {word: "ひがごと", meaning: "まちがい"}, {word: "びんなし", meaning: "不都合だ"}, {word: "ふびんなり", meaning: "気の毒だ"}, {word: "ふみ", meaning: "書物"}, {word: "ほい", meaning: "出家の願い"}, {word: "まうけ", meaning: "準備"}, {word: "まだき", meaning: "早くも"}, {word: "まめ", meaning: "まじめ"}, {word: "まゐる", meaning: "参上する"}, {word: "むげなり", meaning: "身分が低い"}, {word: "むつかし", meaning: "いやだ"}, {word: "めざまし", meaning: "気に食わない"}, {word: "めづ", meaning: "愛する"}, {word: "めだたし", meaning: "すばらしい"}, {word: "やがて", meaning: "そのまま"}, {word: "やすし", meaning: "心穏やかだ"}, {word: "やすらふ", meaning: "ためらう"}, {word: "やはら", meaning: "そっと"}, {word: "やむごとなし", meaning: "身分が高い"}, {word: "ゆかし", meaning: "～たい"}, {word: "ゆゆし", meaning: "不吉だ"}, {word: "よし", meaning: "風情"}, {word: "よしなし", meaning: "つまらない"}, {word: "よも", meaning: "まさか"}, {word: "らうらうじ", meaning: "優雅だ"}, {word: "れいの", meaning: "いつもの"}, {word: "わびし", meaning: "つらい"}, {word: "わりなし", meaning: "むちゃくちゃだ"}, {word: "をさをさ", meaning: "めったに"}, {word: "あらまほし", meaning: "理想的だ"}, {word: "いなぶ", meaning: "断る"}, {word: "いふかひなし", meaning: "どうしようもない"}, {word: "うまのはななむけ", meaning: "送別会"}, {word: "かぐる", meaning: "死ぬ"}, {word: "かたし", meaning: "難しい"}, {word: "かたみに", meaning: "お互いに"}, {word: "かる", meaning: "離れる"}, {word: "けに", meaning: "いよいよ"}, {word: "こぞ", meaning: "去年"}, {word: "さらば", meaning: "それならば"}, {word: "しのぶ", meaning: "恋い慕う"}, {word: "せち", meaning: "ひたすら"}, {word: "そこはかとなし", meaning: "特に理由はない"}, {word: "ちぎり", meaning: "約束"}, {word: "つたなし", meaning: "下手だ"}
+    ];
+
+    let currentQuizPool = [];
+    let currentQuestion = {};
+    let canClick = true;
+    let startTime;
+    let timerInterval;
+    let isAllMode = false;
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
+        document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    function showList() {
+        const listContainer = document.getElementById('word-list-container');
+        listContainer.innerHTML = allWords.map((w, i) => `
+            <div class="word-item"><span>${i+1}. <strong>${w.word}</strong></span><span>${w.meaning}</span></div>
+        `).join('');
+        showScreen('screen-list');
+    }
+
+    function initRangeButtons() {
+        const container = document.getElementById('range-buttons');
+        container.innerHTML = ""; 
+        for (let i = 0; i < allWords.length; i += 10) {
+            const end = Math.min(i + 10, allWords.length);
+            const btn = document.createElement('button');
+            btn.innerText = `${i + 1} ～ ${end}`;
+            btn.onclick = () => { isAllMode = false; startQuiz(i, end); };
+            container.appendChild(btn);
+        }
+        // 「全て」ボタンを追加
+        const allBtn = document.createElement('button');
+        allBtn.innerText = "全て (160語全力挑戦)";
+        allBtn.className = "all-btn";
+        allBtn.onclick = () => { isAllMode = true; startQuiz(0, allWords.length); };
+        container.appendChild(allBtn);
+    }
+
+    function startQuiz(start, end) {
+        currentQuizPool = allWords.slice(start, end).sort(() => Math.random() - 0.5);
+        showScreen('screen-quiz');
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 100);
+        nextQuestion();
+    }
+
+    function updateTimer() {
+        const elapsed = (Date.now() - startTime) / 1000;
+        document.getElementById('timer-display').innerText = `経過時間: ${elapsed.toFixed(1)}秒`;
+    }
+
+    function stopQuiz() {
+        clearInterval(timerInterval);
+        showScreen('screen-menu');
+    }
+
+    function nextQuestion() {
+        if (currentQuizPool.length === 0) {
+            endQuiz();
+            return;
+        }
+        canClick = true;
+        document.getElementById('result-message').innerText = "";
+        document.getElementById('progress').innerText = `残り: ${currentQuizPool.length}問`;
+        currentQuestion = currentQuizPool.pop();
+        document.getElementById('word-display').innerText = currentQuestion.word;
+
+        let choices = [currentQuestion.meaning];
+        while (choices.length < 4) {
+            let rand = allWords[Math.floor(Math.random() * allWords.length)].meaning;
+            if (!choices.includes(rand)) choices.push(rand);
+        }
+        choices.sort(() => Math.random() - 0.5);
+
+        const cards = document.getElementsByClassName('card');
+        for (let i = 0; i < 4; i++) {
+            cards[i].innerText = choices[i];
+            cards[i].style.background = "#fffef0";
+            cards[i].setAttribute('data-meaning', choices[i]);
+        }
+    }
+
+    function checkAnswer(index) {
+        if (!canClick) return;
+        canClick = false;
+        const selected = document.getElementsByClassName('card')[index];
+        const msg = document.getElementById('result-message');
+
+        if (selected.getAttribute('data-meaning') === currentQuestion.meaning) {
+            msg.innerText = "● 正解"; msg.style.color = "green";
+            selected.style.background = "#e1f5fe";
+            setTimeout(nextQuestion, 400); // テンポよく進むよう少し短縮
+        } else {
+            msg.innerText = `× 正解は「${currentQuestion.meaning}」`; msg.style.color = "red";
+            selected.style.background = "#ffebee";
+            currentQuizPool.unshift(currentQuestion);
+            setTimeout(nextQuestion, 1200);
+        }
+    }
+
+    function endQuiz() {
+        clearInterval(timerInterval);
+        const finalTime = (Date.now() - startTime) / 1000;
+        document.getElementById('final-time').innerText = finalTime.toFixed(1);
+        
+        let rank = "";
+        let comment = "";
+
+        if (isAllMode) {
+            // 160語モードの判定基準
+            if (finalTime < 240) { rank = "天皇"; comment = "日出づる処の天子なり！全160語を掌握せし現人神。"; }
+            else if (finalTime < 360) { rank = "関白"; comment = "天下の政を司る者。古文の理を極めておられます。"; }
+            else if (finalTime < 480) { rank = "蔵人"; comment = "宮中に仕える資格十分。良き知恵です。"; }
+            else if (finalTime < 700) { rank = "防人"; comment = "地道な努力が実を結びつつあります。"; }
+            else { rank = "下人"; comment = "160語完走、見事なり。さらなる精進を。"; }
+        } else {
+            // 10語モードの判定基準
+            if (finalTime < 15) { rank = "関白"; comment = "瞬きする間に訳せし才能。お見事！"; }
+            else if (finalTime < 25) { rank = "検非違使"; comment = "都の精鋭。迷いなき解答なり。"; }
+            else if (finalTime < 40) { rank = "蔵人"; comment = "宮中に仕える資格十分。良き知恵です。"; }
+            else if (finalTime < 60) { rank = "防人"; comment = "地道な努力が実を結びつつあります。"; }
+            else { rank = "下人"; comment = "焦らず、一歩ずつ覚えてゆきましょう。"; }
+        }
+
+        document.getElementById('rank-display').innerText = rank;
+        document.getElementById('rank-comment').innerText = comment;
+        showScreen('screen-result');
+    }
+
+    initRangeButtons();
+</script>
+</body>
+</html>
