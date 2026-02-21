@@ -73,6 +73,66 @@
         
         /* 「全て」ボタン用のスタイル */
         .all-btn { grid-column: 1 / 3; background: #fbe9e7; font-weight: bold; border-color: #d32f2f; }
+        /* 解説ページ専用スタイル（他画面への干渉防止） */
+#screen-expl {
+    text-align: left;
+}
+
+#screen-expl .expl-table-container {
+    max-height: 450px;
+    overflow-y: auto;
+    margin: 20px 0;
+    border: 2px solid #8b4513;
+    background: #fff;
+}
+
+#screen-expl table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Sawarabi Mincho', serif;
+}
+
+#screen-expl th {
+    background-color: #8b4513;
+    color: #ffffff;
+    padding: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    font-size: 0.9rem;
+}
+
+#screen-expl td {
+    border: 1px solid #d2b48c;
+    padding: 10px;
+    vertical-align: middle;
+    line-height: 1.4;
+    font-size: 0.85rem;
+}
+
+/* 偶数行の色変え */
+#screen-expl tr:nth-child(even) {
+    background-color: #fdf5e6;
+}
+
+/* 単語の強調 */
+#screen-expl .kobu-entry {
+    color: #d32f2f;
+    font-weight: bold;
+    display: block;
+}
+
+/* カテゴリラベル */
+#screen-expl .cat-label {
+    display: inline-block;
+    background: #5d4037;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: normal;
+}
+
     </style>
 </head>
 <body>
@@ -121,7 +181,199 @@
         <p>～ 迅速に訳し、高位を目指せ ～</p>
         <button style="width:80%" onclick="showScreen('screen-range')">演習を開始する</button><br>
         <button style="width:80%" onclick="showList()">単語帳を捲る</button>
+         <button style="width:80%" onclick="showScreen('screen-expl')">ややこしい単語</button><br>
     </div>
+
+    <div id="screen-expl" class="hidden">
+    <h1 style="display:block; text-align:center; color: #5d4037; border-bottom: 2px solid #8b4513; margin-bottom: 20px;">古文単語 類義語比較表</h1>
+    
+    <div class="expl-table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%;">区分</th>
+                    <th style="width: 30%;">単語 / 訳</th>
+                    <th style="width: 55%;">識別のポイント</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- たくさん -->
+                <tr>
+                    <td rowspan="3" style="text-align:center;"><span class="cat-label">たくさん</span></td>
+                    <td><span class="kobu-entry">あまた</span>たくさん</td>
+                    <td>最も一般的。数や量が多い。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">ここら</span>たくさん</td>
+                    <td>「ここらへんにたくさん」と覚える。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">そこばく</span>たくさん</td>
+                    <td>「そこ（底）知れず、バクッと」たくさん。</td>
+                </tr>
+                <!-- どうしようもない -->
+                <tr>
+                    <td rowspan="7" style="text-align:center;"><span class="cat-label">どうしようもない・無意味</span></td>
+                    <td><span class="kobu-entry">あぢきなし</span>どうしようもない</td>
+                    <td>「面白くない・無益だ」。不満なニュアンス。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">ずちなし</span>どうしようもない</td>
+                    <td>「術（手段）がない」。お手上げ状態。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">いふかひなし</span>どうしようもない</td>
+                    <td>言う価値もないほど、情けない。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">いたづらなり</span>むなしい</td>
+                    <td>「徒労」。無駄に終わる。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">はかなし</span>むなしい</td>
+                    <td>「儚い」。頼りなく消えやすい。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">よしなし</span>つまらない</td>
+                    <td>「理由がない・関係ない」。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">あいなし</span>つまらない</td>
+                    <td>「おもしろくない」。不快だ。</td>
+                </tr>
+                <!-- 身分 -->
+                <tr>
+                    <td rowspan="6" style="text-align:center;"><span class="cat-label">高貴・立派</span></td>
+                    <td><span class="kobu-entry">あてなり</span>身分が高い</td>
+                    <td>「上品さ」「洗練」に注目。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">やむごとなし</span>身分が高い</td>
+                    <td>「放っておけない」ほど家柄が最高位。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">いうなり</span>上品だ</td>
+                    <td>「優雅・優美」な様子。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">うるはし</span>立派だ</td>
+                    <td>「整っている・きちんとしている」。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">はづかし</span>立派だ</td>
+                    <td>（相手が立派で）こちらが気後れする。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">らうらうじ</span>優雅だ</td>
+                    <td>「洗練された・巧みで優雅」。</td>
+                </tr>
+                <!-- 準備 -->
+                <tr>
+                    <td rowspan="3" style="text-align:center;"><span class="cat-label">準備</span></td>
+                    <td><span class="kobu-entry">いそぎ</span>準備</td>
+                    <td>急いで行う支度・催し。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">したたむ</span>準備をする</td>
+                    <td>「整える・整理する」。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">まうけ</span>準備</td>
+                    <td>あらかじめ用意しておくこと（設け）。</td>
+                </tr>
+                <!-- 気の毒 -->
+                <tr>
+                    <td rowspan="3" style="text-align:center;"><span class="cat-label">気の毒</span></td>
+                    <td><span class="kobu-entry">いとほし</span>気の毒だ</td>
+                    <td>（相手を）いたわってあげたい気持ち。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">こころぐるし</span>気の毒だ</td>
+                    <td>（相手を見て）自分の心が痛む。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">ふびんなり</span>気の毒だ</td>
+                    <td>不都合で可哀想だ。</td>
+                </tr>
+                <!-- かわいい -->
+                <tr>
+                    <td rowspan="3" style="text-align:center;"><span class="cat-label">かわいい・愛す</span></td>
+                    <td><span class="kobu-entry">うつくし</span>かわいい</td>
+                    <td>肉親的な「慈しみ・愛おしさ」。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">かなし</span>かわいい</td>
+                    <td>切ないほど愛おしい。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">めづ</span>愛する</td>
+                    <td>「賞賛する・褒める」ニュアンス。</td>
+                </tr>
+                <!-- 不安 -->
+                <tr>
+                    <td rowspan="4" style="text-align:center;"><span class="cat-label">不安・気がかり</span></td>
+                    <td><span class="kobu-entry">いぶかし</span>気がかりだ</td>
+                    <td>「実体を知りたい」好奇心が強い。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">おぼつかなし</span>気がかりだ</td>
+                    <td>「ぼんやり」してはっきりせず不安。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">こころもとなし</span>不安だ</td>
+                    <td>「じれったい」。待ち遠しくて不安。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">うしろめたし</span>心配だ</td>
+                    <td>後が心配。気がかりだ。</td>
+                </tr>
+                <!-- 早い -->
+                <tr>
+                    <td rowspan="5" style="text-align:center;"><span class="cat-label">早い・急</span></td>
+                    <td><span class="kobu-entry">とく</span>はやく</td>
+                    <td>時間的に早い。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">とし</span>はやい</td>
+                    <td>動作や時期がはやい。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">まだき</span>早くも</td>
+                    <td>時期尚早。もう（早くも）。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">とみなり</span>急だ</td>
+                    <td>「頓（とみ）」。急な様子。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">うちつけなり</span>突然だ</td>
+                    <td>出し抜け。行き当たりばったり。</td>
+                </tr>
+                <!-- 願望 -->
+                <tr>
+                    <td rowspan="3" style="text-align:center;"><span class="cat-label">願望</span></td>
+                    <td><span class="kobu-entry">ゆかし</span>〜たい</td>
+                    <td>見たい・聞きたい・知りたい。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">ばや</span>〜たい</td>
+                    <td>自分の希望を述べる。</td>
+                </tr>
+                <tr>
+                    <td><span class="kobu-entry">てしがな</span>〜たいものだ</td>
+                    <td>強い願望・理想を望む。</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <p>※「識別のポイント」は、AIに考えさせたものです。<br>誤りや指摘がある場合は、製作者にお伝えください。</p>
+
+    <div style="text-align:center; margin-top:15px;">
+        <button onclick="showScreen('screen-menu')">品書きへ戻る</button>
+    </div>
+</div>
+
+
 
     <div id="screen-list" class="hidden">
         <h1>単語一覧</h1>
