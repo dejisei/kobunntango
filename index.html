@@ -179,6 +179,8 @@
     <div id="screen-menu">
         <h1>古文単語 官職昇進戦</h1>
         <p>～ 迅速に訳し、高位を目指せ ～</p>
+        <button class="exit-btn" id="mode-toggle-btn" onclick="toggleMode()">モード: 古文 → 現代語</button>
+        <!-- ↟「中断ボタン」見た目を使いまわすよ。 -->
         <button style="width:80%" onclick="showScreen('screen-range')">演習を開始する</button><br>
         <button style="width:80%" onclick="showList()">単語帳を捲る</button>
          <button style="width:80%" onclick="showScreen('screen-expl')">ややこしい単語</button><br>
@@ -423,6 +425,7 @@
     let startTime;
     let timerInterval;
     let isAllMode = false;
+    let isReverseMode = false;
 
     function showScreen(screenId) {
         document.querySelectorAll('.container > div').forEach(div => div.classList.add('hidden'));
@@ -435,6 +438,13 @@
             <div class="word-item"><span>${i+1}. <strong>${w.word}</strong></span><span>${w.meaning}</span></div>
         `).join('');
         showScreen('screen-list');
+    }
+
+    function toggleMode() {
+        isReverseMode = !isReverseMode;
+        const btn = document.getElementById('mode-toggle-btn');
+        btn.innerText = isReverseMode ? "モード: 現代語 → 古文" : "モード: 古文 → 現代語";
+        btn.classList.toggle('reverse-active', isReverseMode);
     }
 
     function initRangeButtons() {
@@ -482,12 +492,20 @@
         document.getElementById('result-message').innerText = "";
         document.getElementById('progress').innerText = `残り: ${currentQuizPool.length}問`;
         currentQuestion = currentQuizPool.pop();
-        document.getElementById('word-display').innerText = currentQuestion.word;
 
-        let choices = [currentQuestion.meaning];
+        // ★出題と正解をモードで切り替え
+        const questionText = isReverseMode ? currentQuestion.meaning : currentQuestion.word;
+        const correctAnwser = isReverseMode ? currentQuestion.word : currentQuestion.meaning;
+
+        document.getElementById('word-display').innerText = questionText;
+
+        // ★選択肢の生成もモードに対応
+        let choices = [correctAnwser];
         while (choices.length < 4) {
-            let rand = allWords[Math.floor(Math.random() * allWords.length)].meaning;
-            if (!choices.includes(rand)) choices.push(rand);
+            let randWord = allWords[Math.floor(Math.random() * allWords.length)];
+            // モードに応じてダミーの単語か意味を選ぶ
+            let randChoice = isReverseMode ? randWord.word : randWord.meaning;
+            if (!choices.includes(randChoice)) choices.push(randChoice);
         }
         choices.sort(() => Math.random() - 0.5);
 
@@ -495,28 +513,32 @@
         for (let i = 0; i < 4; i++) {
             cards[i].innerText = choices[i];
             cards[i].style.background = "#fffef0";
-            cards[i].setAttribute('data-meaning', choices[i]);
+            // 判定用に正解を保持
+            cards[i].setAttribute('data-answer', choices[i]);
         }
     }
 
-    function checkAnswer(index) {
+
+     function checkAnswer(index) {
         if (!canClick) return;
         canClick = false;
         const selected = document.getElementsByClassName('card')[index];
         const msg = document.getElementById('result-message');
+        
+        // ★正解の比較対象をモードに合わせて変更
+        const correctAnwser = isReverseMode ? currentQuestion.word : currentQuestion.meaning;
 
-        if (selected.getAttribute('data-meaning') === currentQuestion.meaning) {
+        if (selected.getAttribute('data-answer') === correctAnwser) {
             msg.innerText = "● 正解"; msg.style.color = "green";
             selected.style.background = "#e1f5fe";
-            setTimeout(nextQuestion, 400); // テンポよく進むよう少し短縮
+            setTimeout(nextQuestion, 400);
         } else {
-            msg.innerText = `× 正解は「${currentQuestion.meaning}」`; msg.style.color = "red";
+            msg.innerText = `× 正解は「${correctAnwser}」`; msg.style.color = "red";
             selected.style.background = "#ffebee";
             currentQuizPool.unshift(currentQuestion);
             setTimeout(nextQuestion, 1200);
         }
     }
-
     function endQuiz() {
         clearInterval(timerInterval);
         const finalTime = (Date.now() - startTime) / 1000;
